@@ -857,7 +857,7 @@ export class Raycaster {
     isOver() {
         for (let sprite of this.sprites) {
             if ((sprite.x + this.tileSize / 2 > this.player.x && sprite.x - this.tileSize / 2 < this.player.x) && (sprite.y + this.tileSize / 2 > this.player.y && sprite.y - this.tileSize / 2 < this.player.y)) {
-                if (sprite.type === "zombie" && !this.gameOver) {
+                if (sprite.type == "spriteImageData" && !this.gameOver) {
                     alert("Game Over! You were bit by a zombie!");
                     window.location.reload();
                 }
