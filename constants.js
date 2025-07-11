@@ -1,4 +1,4 @@
-export const DESIRED_FPS = 120;
+const DESIRED_FPS = 120;
 export const UPDATE_INTERVAL = Math.trunc(1000 / DESIRED_FPS)
 export const KEY_UP = "ArrowUp"
 export const KEY_DOWN = "ArrowDown"
@@ -33,8 +33,8 @@ export const MAP = [
     [1, 0, 0, 4, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 0, 0, 4, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 0, 0, 4, 3, 3, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 3, 3, 4, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 ];
 
@@ -42,20 +42,27 @@ export const IMAGE_CONFIGS = [
     { id: "floorImageData", src: "img/floor.png" },
     { id: "ceilingImageData", src: "img/ceiling.png" },
     { id: "spriteImageData", src: "img/zombie.png" },
+    { id: "goldImageData", src: "img/gold.png" },
     { id: "wallsImageData", src: "img/wallsheet.png" }
 ];
 
 
 
 export class Sprite {
-    constructor(x = 0, y = 0, z = 0, w = 128, h = 128) {
+    constructor(x = 0, y = 0, z = 0, w = 128, h = 128, type) {
         this.x = x
         this.y = y
         this.z = w
         this.w = w
         this.h = h
         this.hit = false
+        this.type = type // type of sprite, used for texture mapping
         this.screenPosition = null // calculated screen position
+    }
+
+    resetSpriteHit()
+    {
+        this.screenPosition = null
     }
 }
 

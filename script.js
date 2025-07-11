@@ -1,4 +1,4 @@
-import { DESIRED_FPS, UPDATE_INTERVAL, TWO_PI, MAP, IMAGE_CONFIGS } from './constants.js';
+import { UPDATE_INTERVAL, TWO_PI, MAP, IMAGE_CONFIGS } from './constants.js';
 import { KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_W, KEY_S, KEY_A, KEY_D } from './constants.js';
 import { Player, RayHit, RayState, Sprite } from './constants.js';
 
@@ -40,23 +40,82 @@ export class Raycaster {
     }
 
     initSprites() {
-        // Put sprite in center of cell
-        const tileSizeHalf = Math.floor(this.tileSize / 2)
-        let spritePositions = [
-            [18 * this.tileSize + tileSizeHalf, 8 * this.tileSize + tileSizeHalf],
-            [19 * this.tileSize + tileSizeHalf, 8 * this.tileSize + tileSizeHalf],
-            [19 * this.tileSize + tileSizeHalf / 2, 8 * this.tileSize + tileSizeHalf],
-            [18 * this.tileSize + tileSizeHalf, 12 * this.tileSize + tileSizeHalf],
-            [12 * this.tileSize + tileSizeHalf, 8 * this.tileSize + tileSizeHalf],
-        ]
-        this.sprites = []
-
-        for (let pos of spritePositions) {
-            let sprite = new Sprite(pos[0], pos[1], 0, this.tileSize, this.tileSize)
-            console.log(JSON.stringify(sprite))
-            this.sprites.push(sprite)
-        }
+        const tileSizeHalf = Math.floor(this.tileSize / 2);
+        let spritePositions = [];
+    
+        const shuffle = (array) => {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        };
+    
+        const placeEntities = () => {
+            const emptyPositions = [];
+            const edgePositions = [];
+    
+            for (let y = 0; y < this.mapHeight; y++) {
+                for (let x = 0; x < this.mapWidth; x++) {
+                    if (this.map[y][x] === 0) {
+                        const pos = [x * this.tileSize + tileSizeHalf, y * this.tileSize + tileSizeHalf];
+                        emptyPositions.push(pos);
+                        if (y === 1 || y === this.mapHeight - 2 || x === 1 || x === this.mapWidth - 2) {
+                            edgePositions.push(pos);
+                        }
+                    }
+                }
+            }
+    
+            shuffle(emptyPositions);
+            shuffle(edgePositions);
+    
+            const usedZombies = [];
+    
+            // Place zombies
+            for (let i = 0; i < Math.min(15, emptyPositions.length); i++) {
+                const pos = emptyPositions[i];
+                usedZombies.push(pos);
+                spritePositions.push(pos);
+            }
+    
+            // Helper to check if any zombie is too close
+            const isTooClose = (pos) => {
+                return usedZombies.some(z => {
+                    const dx = Math.abs(z[0] - pos[0]);
+                    const dy = Math.abs(z[1] - pos[1]);
+                    return dx <= this.tileSize * 2 && dy <= this.tileSize * 2;
+                });
+            };
+    
+            // Place treasure at edge with no zombies within 2 tiles
+            for (let pos of edgePositions) {
+                if (!isTooClose(pos)) {
+                    spritePositions.push(pos);
+                    break;
+                }
+            }
+        };
+    
+        placeEntities();
+        this.sprites = [];
+    
+        spritePositions.forEach((pos, index) => {
+            const isTreasure = index === spritePositions.length - 1;
+            const sprite = new Sprite(
+                pos[0],
+                pos[1],
+                0,
+                this.tileSize,
+                this.tileSize,
+                isTreasure ? "goldImageData" : "spriteImageData"
+            );
+            console.log(JSON.stringify(sprite));
+            this.sprites.push(sprite);
+        });
     }
+    
+    
 
     resetSpriteHits() {
         for (let sprite of this.sprites) {
@@ -266,13 +325,6 @@ export class Raycaster {
         }
     }
 
-    // Draws the entire sprite
-    // drawSprite(rayHit)
-    // {
-    //   let rc = this.spriteScreenPosition(rayHit.sprite)
-    //   this.drawTexturedRect(this.spriteImageData, 0, 0, this.textureSize, this.textureSize, rc.x, rc.y, rc.w, rc.h)
-    // }
-
     /**
      * Draws only the vertical part of the sprite corresponding to the current screen strip
     */
@@ -295,7 +347,7 @@ export class Raycaster {
         let srcX = Math.trunc(diffX / rc.w * this.textureSize)
         let srcW = 1
         if (srcX >= 0 && srcX < this.textureSize) {
-            this.drawTexturedRect(this.spriteImageData, srcX, 0, srcW, this.textureSize, dstX, rc.y, this.stripWidth, rc.h);
+            this.drawTexturedRect(this[rayHit.sprite.type], srcX, 0, srcW, this.textureSize, dstX, rc.y, this.stripWidth, rc.h);
         }
     }
 
@@ -784,15 +836,30 @@ export class Raycaster {
         objectCtx.closePath();
         objectCtx.stroke();
     }
+
     // Check if we are allowed to move to the position or if there is a blocking wall
     isBlocking(x, y) {
+        this.isOver();
         // Outer boundaries
-        if (y < 0 || y >= this.mapHeight || x < 0 || x >= this.mapWidth)
-            return true;
+        if (y < 0 || y >= this.mapHeight || x < 0 || x >= this.mapWidth) return true;
         // wall collision
         return (this.map[Math.floor(y)][Math.floor(x)] != 0);
     }
-
+    isOver()
+    {
+        for(let sprite of this.sprites) {
+            if((sprite.x+this.tileSize/2> this.player.x && sprite.x-this.tileSize/2<this.player.x) && (sprite.y+this.tileSize/2> this.player.y && sprite.y-this.tileSize/2<this.player.y)) {
+                if(sprite.type === "zombie") {
+                alert("Game Over! You were bit by a zombie!");
+                window.location.reload();
+                }
+                else{
+                    alert("Congrats! You found the treasure");
+                    window.location.reload();
+                }
+            }
+        }
+    }
 
     move(timeElapsed) {
         // === 1. Input Handling ===
@@ -844,8 +911,6 @@ export class Raycaster {
     
 
     updateMiniMap() {
-
-        let miniMap = document.getElementById("minimap");
         let miniMapObjects = document.getElementById("minimapobjects");
 
         let objectCtx = miniMapObjects.getContext("2d");
