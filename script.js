@@ -863,8 +863,8 @@ export class Raycaster {
                 }
                 else {
                     alert("Congrats! You found the treasure");
-                    window.location.href = "/"
-                }
+                    window.location.reload();
+                    }
                 this.gameOver = true;
             }
         }
