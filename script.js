@@ -665,6 +665,8 @@ export class Raycaster {
             stephx = -stephx
         }
 
+        // === DDA algorithm ===
+
         // Vertical lines
         ray.vertical = true
         ray.horizontal = false
@@ -676,6 +678,9 @@ export class Raycaster {
             ray.vx += stepvx
             ray.vy += stepvy
         }
+
+        // === DDA algorithm ===
+
 
         // Horizontal lines
         ray.vertical = false
