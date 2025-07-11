@@ -1,0 +1,74 @@
+<!--
+JavaScript Canvas Wolfenstein 3D Raycaster
+Author: Andrew Lim
+https://github.com/andrew-lim/html5-raycast
+-->
+<html>
+
+<head>
+    <title>JavaScript Raycasting Engine</title>
+    <style>
+        body {
+            box-sizing: border-box;
+            background-color: rgb(25, 65, 65);
+            height: 100%;
+            overflow: hidden;
+            color: white;
+        }
+
+        #minimapcontainer {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+        }
+        canvas#minimap {
+            bottom: 0;
+            z-index: 5;
+            position: absolute;
+        }
+
+        canvas#minimapobjects {
+            position: absolute;
+            bottom: 0;
+            z-index: 6;
+        }
+
+        #mainCanvas {
+            position: absolute;
+            background-color: none;
+        }
+
+        #screen {
+            border-top: 4px solid rgb(25, 25, 25);
+            border-left: 4px solid rgb(25, 25, 25);
+            border-right: 4px solid #1B625E;
+            border-bottom: 4px solid #1B625E;
+            overflow: hidden;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div id="div_textures" style="display: none;">
+        <!-- <img> tags will be dynamically added here by Raycaster.loadImages() -->
+    </div>
+    <div id="screen">
+        <canvas id="mainCanvas"></canvas>
+    </div>
+    <div id="minimapcontainer">
+        <canvas id="minimap"></canvas>
+        <canvas id="minimapobjects"></canvas>
+    </div>
+    <script type="module">
+        import { Raycaster } from "./script.js";
+        window.onload = function () {
+            let raycaster = new Raycaster(document.getElementById("mainCanvas"))
+            document.getElementById("mainCanvas").style.width = "100%";
+            raycaster.gameCycle()
+        }
+    </script>
+</body>
