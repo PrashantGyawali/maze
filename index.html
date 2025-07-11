@@ -10,7 +10,7 @@ https://github.com/andrew-lim/html5-raycast
     <style>
         body {
             box-sizing: border-box;
-            background-color: rgb(25, 65, 65);
+            background-color: #4d4700;
             height: 100%;
             overflow: hidden;
             color: white;
@@ -39,13 +39,10 @@ https://github.com/andrew-lim/html5-raycast
         #mainCanvas {
             position: absolute;
             background-color: none;
+            height: 98%;
         }
 
         #screen {
-            border-top: 4px solid rgb(25, 25, 25);
-            border-left: 4px solid rgb(25, 25, 25);
-            border-right: 4px solid #1B625E;
-            border-bottom: 4px solid #1B625E;
             overflow: hidden;
         }
     </style>
@@ -67,7 +64,7 @@ https://github.com/andrew-lim/html5-raycast
         import { Raycaster } from "./script.js";
         window.onload = function () {
             let raycaster = new Raycaster(document.getElementById("mainCanvas"))
-            document.getElementById("mainCanvas").style.width = "100%";
+            document.getElementById("mainCanvas").style.width = "99%";
             raycaster.gameCycle()
         }
     </script>

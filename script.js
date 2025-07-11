@@ -42,7 +42,7 @@ export class Raycaster {
     initSprites() {
         const tileSizeHalf = Math.floor(this.tileSize / 2);
         let spritePositions = [];
-    
+
         const shuffle = (array) => {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -50,11 +50,11 @@ export class Raycaster {
             }
             return array;
         };
-    
+
         const placeEntities = () => {
             const emptyPositions = [];
             const edgePositions = [];
-    
+
             for (let y = 0; y < this.mapHeight; y++) {
                 for (let x = 0; x < this.mapWidth; x++) {
                     if (this.map[y][x] === 0) {
@@ -66,19 +66,19 @@ export class Raycaster {
                     }
                 }
             }
-    
+
             shuffle(emptyPositions);
             shuffle(edgePositions);
-    
+
             const usedZombies = [];
-    
+
             // Place zombies
             for (let i = 0; i < Math.min(15, emptyPositions.length); i++) {
                 const pos = emptyPositions[i];
                 usedZombies.push(pos);
                 spritePositions.push(pos);
             }
-    
+
             // Helper to check if any zombie is too close
             const isTooClose = (pos) => {
                 return usedZombies.some(z => {
@@ -87,7 +87,7 @@ export class Raycaster {
                     return dx <= this.tileSize * 2 && dy <= this.tileSize * 2;
                 });
             };
-    
+
             // Place treasure at edge with no zombies within 2 tiles
             for (let pos of edgePositions) {
                 if (!isTooClose(pos)) {
@@ -96,10 +96,10 @@ export class Raycaster {
                 }
             }
         };
-    
+
         placeEntities();
         this.sprites = [];
-    
+
         spritePositions.forEach((pos, index) => {
             const isTreasure = index === spritePositions.length - 1;
             const sprite = new Sprite(
@@ -114,8 +114,8 @@ export class Raycaster {
             this.sprites.push(sprite);
         });
     }
-    
-    
+
+
 
     resetSpriteHits() {
         for (let sprite of this.sprites) {
@@ -136,7 +136,7 @@ export class Raycaster {
     }
 
     constructor(mainCanvas, displayWidth = window.innerWidth, displayHeight = window.innerHeight, tileSize = 1280, textureSize = 128, fovDegrees = 70) {
-        
+
         this.map = MAP
         this.stripWidth = 1 // leave this at 1 for now
         this.ceilingHeight = 1 // ceiling height in blocks
@@ -162,8 +162,9 @@ export class Raycaster {
         this.textureImageDatas = []
         this.texturesLoadedCount = 0
         this.texturesLoaded = false
-
-        this.player= new Player(this.tileSize)
+        this.gameOver = false;
+        this.gameStarted = false;
+        this.player = new Player(this.tileSize)
         this.initSprites()
         this.bindKeys()
         this.initMouseControls();
@@ -209,19 +210,19 @@ export class Raycaster {
     // Bind the keys to the keysDown array
     bindKeys() {
         this.keysDown = {};
-        document.onkeydown =(e)=> {
+        document.onkeydown = (e) => {
             this.keysDown[e.key] = true;
         }
-        document.onkeyup =(e)=>{
+        document.onkeyup = (e) => {
             this.keysDown[e.key] = false;
         }
     }
     initMouseControls() {
         const canvas = document.getElementById('mainCanvas');
-    
+
         // Activate pointer lock on click
         canvas.onclick = () => canvas.requestPointerLock();
-    
+
         document.addEventListener('mousemove', (e) => {
             const sensitivity = 0.003;
             if (document.pointerLockElement === canvas) {
@@ -243,10 +244,18 @@ export class Raycaster {
             this.castRays(rayHits);
             this.sortRayHits(rayHits)
             this.drawWorld(rayHits);
+            if (!this.gameStarted) {
+                setTimeout(() => {
+                    alert("Avoid zombies and find the treasure");
+                    this.gameStarted = true;
+                }, 0)
+            }
         }
         let this2 = this
         window.requestAnimationFrame(function () {
-            this2.gameCycle()
+            if (!this2.gameOver) {
+                this2.gameCycle()
+            }
         });
     }
 
@@ -845,18 +854,18 @@ export class Raycaster {
         // wall collision
         return (this.map[Math.floor(y)][Math.floor(x)] != 0);
     }
-    isOver()
-    {
-        for(let sprite of this.sprites) {
-            if((sprite.x+this.tileSize/2> this.player.x && sprite.x-this.tileSize/2<this.player.x) && (sprite.y+this.tileSize/2> this.player.y && sprite.y-this.tileSize/2<this.player.y)) {
-                if(sprite.type === "zombie") {
-                alert("Game Over! You were bit by a zombie!");
-                window.location.reload();
-                }
-                else{
-                    alert("Congrats! You found the treasure");
+    isOver() {
+        for (let sprite of this.sprites) {
+            if ((sprite.x + this.tileSize / 2 > this.player.x && sprite.x - this.tileSize / 2 < this.player.x) && (sprite.y + this.tileSize / 2 > this.player.y && sprite.y - this.tileSize / 2 < this.player.y)) {
+                if (sprite.type === "zombie" && !this.gameOver) {
+                    alert("Game Over! You were bit by a zombie!");
                     window.location.reload();
                 }
+                else {
+                    alert("Congrats! You found the treasure");
+                    window.location.href = "/"
+                }
+                this.gameOver = true;
             }
         }
     }
@@ -867,14 +876,14 @@ export class Raycaster {
         const backward = this.keysDown[KEY_DOWN] || this.keysDown[KEY_S];
         const strafeLeft = this.keysDown[KEY_LEFT] || this.keysDown[KEY_A];
         const strafeRight = this.keysDown[KEY_RIGHT] || this.keysDown[KEY_D];
-    
+
         // === 2. Time-scaled movement ===
         const delta = timeElapsed / UPDATE_INTERVAL;
         const moveSpeed = this.player.moveSpeed * delta;
-    
+
         let moveX = 0;
         let moveY = 0;
-    
+
         // === 3. Forward/backward movement ===
         if (forward) {
             moveX += Math.cos(this.player.rot) * moveSpeed;
@@ -884,7 +893,7 @@ export class Raycaster {
             moveX -= Math.cos(this.player.rot) * moveSpeed;
             moveY += Math.sin(this.player.rot) * moveSpeed;
         }
-    
+
         // === 4. Strafing movement ===
         if (strafeLeft) {
             moveX += Math.cos(this.player.rot + Math.PI / 2) * moveSpeed;
@@ -894,21 +903,21 @@ export class Raycaster {
             moveX += Math.cos(this.player.rot - Math.PI / 2) * moveSpeed;
             moveY -= Math.sin(this.player.rot - Math.PI / 2) * moveSpeed;
         }
-    
+
         // === 5. Calculate next position ===
         const nextX = this.player.x + moveX;
         const nextY = this.player.y + moveY;
-    
+
         // === 6. Collision check ===
         const cellX = Math.floor(nextX / this.tileSize);
         const cellY = Math.floor(nextY / this.tileSize);
-    
+
         if (!this.isBlocking(cellX, cellY)) {
             this.player.x = Math.floor(nextX);
             this.player.y = Math.floor(nextY);
         }
     }
-    
+
 
     updateMiniMap() {
         let miniMapObjects = document.getElementById("minimapobjects");
